@@ -42,6 +42,14 @@ python llm.py
 1.API密钥安全:DASHSCOPE APIKEY是敏感信息，请不要交到版本控制系统
 
 
+py -3 --version
+
+py -3 -m venv .venv 创建虚拟环境
+
+.venv\Scripts\activate     激活虚拟环境
+
+
+
 """
 
 
