@@ -76,6 +76,33 @@ api_key = os.getenv("DASHSCOPE_API_KEY")
 # 如果未设置API密钥，提供油耗的错误提示
 #if not api_key:
 
+tools0 = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "获取指定城市的当前天气情况",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                  "city": {
+                    "type": "string",
+                    "description": "The name of the city. such as 北京、上海"
+                  }
+              },
+              "required": ["city"]
+         }
+        }
+    }
+]
+
+
+# 这是实际干活的函数（你可以保留之前的模拟数据，或者接入真实API）
+def get_weather(city):
+    print(f"[系统日志] 正在查询 {city} 的天气...") 
+    # 这里放你真实的查询逻辑，或者模拟数据
+    mock_data = {"北京": "晴 26度", "上海": "小雨 24度"}
+    return mock_data.get(city, f"{city}天气数据暂无，默认晴朗")
 
 
 
@@ -152,10 +179,37 @@ def call_qwen(message, history):
   try:
     # 使用qwen-max模型，这是通义千问系列中的高性能版本   
     response = client.chat.completions.create(
-      model="qwen3.5-35b-a3b",       #指定使用的模型名称
+      model="qwen3.6-27b",       #指定使用的模型名称
       messages=messages,      #传递完整的对话历史和当前消息
-      stream=False            #设置为非流式响应(一次性返回完整结果)
+      tools=tools0,           # <--- 关键点：把工具描述传给模型
+      tool_choice="auto"      # 让模型自己决定要不要用工具
+      # stream=False            #设置为非流式响应(一次性返回完整结果)
     )
+
+    assistant_message = response.choices[0].message
+
+    # 3. 判断模型是否需要调用工具
+    if assistant_message.tool_calls:
+      # 把模型的请求加入历史记录
+      message.append(assistant_message)
+
+      for tool_call in assistant_message.tool_calls:
+        function_name = tool_call.function.name
+        function_args = json.loads(tool_call.function.arguments) #解析参数
+
+        # 4. 执行真正的 python 函数
+        if function_name == "get_weather":
+          result = get_weather(**function_args)
+
+        # 5. 把执行结果包装成"tool"角色的消息，放回历史
+        message.append({
+          "role": "tool",
+          "tool_call_id": tool_call.id,
+          "name": function_name,
+          "content": str(result)
+        })   
+
+
 
     # 提取并返回模型生成的回复内容
     return response.choices[0].message.content
