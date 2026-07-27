@@ -74,6 +74,8 @@ from openai import OpenAI   #OPenAI 兼容API的客户端库，用于调用同�
 # 确保在运行此脚本前已设置DASHSCOPE_API_KEY
 api_key = os.getenv("DASHSCOPE_API_KEY")
 
+llm_model_name = "qwen3.7-max-2026-05-20"
+
 # 如果未设置API密钥，提供油耗的错误提示
 #if not api_key:
 
@@ -180,7 +182,7 @@ def call_qwen(message, history):
   try:
     # 使用qwen-max模型，这是通义千问系列中的高性能版本   
     response = client.chat.completions.create(
-      model="qwen3.7-max-2026-05-20",       #指定使用的模型名称
+      model=llm_model_name,       #指定使用的模型名称
       messages=messages,      #传递完整的对话历史和当前消息
       tools=tools0,           # <--- 关键点：把工具描述传给模型
       tool_choice="auto"      # 让模型自己决定要不要用工具
@@ -212,7 +214,7 @@ def call_qwen(message, history):
 
       # 6. 第二次调用 LLM， 让他根据工具返回的结果生成最终的回复  
       second_response = client.chat.completions.create(
-        model="qwen3.7-max-2026-05-20",       #指定使用的模型名称
+        model=llm_model_name,       #指定使用的模型名称
         messages=messages,      #传递完整的对话历史和当前消息
       )
       return second_response.choices[0].message.content
