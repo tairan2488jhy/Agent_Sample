@@ -1,6 +1,6 @@
 
+# -*- coding: utf-8 -*-
 """
-
 
 
 
@@ -162,7 +162,7 @@ def call_qwen(message, history):
       for msg in history:
         # 检查是否为字典格式且包含必要的'role'和'content'字段
         if isinstance(msg, dict) and 'role' in msg and 'content' in msg:
-          message.append(msg)
+          messages.append(msg)
         #检查是否为元组或列表格式(较旧版本Gradio的格式)
         elif isinstance(msg, (list, tuple)) and len(msg) == 2:
            # 兼容旧格式的历史记录[(user_msg,assistant_msg),...] 
@@ -200,9 +200,15 @@ def call_qwen(message, history):
         function_name = tool_call.function.name
         function_args = json.loads(tool_call.function.arguments) #解析参数
 
+        # result = "没有结果返回"
         # 4. 执行真正的 python 函数
         if function_name == "get_weather":
           result = get_weather(**function_args)
+
+      
+
+        # return result
+        # 如果不第二次调用大模型
 
         # 5. 把执行结果包装成"tool"角色的消息，放回历史
         messages.append({
