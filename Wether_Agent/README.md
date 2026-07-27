@@ -14,5 +14,6 @@ while ($true) { python app.py; Write-Host "重启中..."; Start-Sleep -Seconds 1
 ## VSCode 引入python依赖 开启调试
 
 # 接入正式的天气 api 
+1. pip install requests
 
 
