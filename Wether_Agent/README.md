@@ -1,6 +1,11 @@
 
 # 260726 模拟天气agent 触发大模型调用
 
+# 激活python 虚拟环境  
+```
+.venv\Scripts\activate
+```
+
 # 重启应用的语句
 ```
 #bash
@@ -15,5 +20,6 @@ while ($true) { python app.py; Write-Host "重启中..."; Start-Sleep -Seconds 1
 
 # 接入正式的天气 api 
 1. pip install requests
+
 
 
