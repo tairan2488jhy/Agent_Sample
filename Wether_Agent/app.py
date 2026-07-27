@@ -64,6 +64,7 @@ py -3 -m venv .venv 创建虚拟环境
 
 
 # 导入必要的库
+import json
 import gradio as gr         #Gradio库 用于创建Web界面
 import os                   #用于访问环境变量
 from openai import OpenAI   #OPenAI 兼容API的客户端库，用于调用同意千问
@@ -179,7 +180,7 @@ def call_qwen(message, history):
   try:
     # 使用qwen-max模型，这是通义千问系列中的高性能版本   
     response = client.chat.completions.create(
-      model="qwen3.6-27b",       #指定使用的模型名称
+      model="qwen3.7-max-2026-05-20",       #指定使用的模型名称
       messages=messages,      #传递完整的对话历史和当前消息
       tools=tools0,           # <--- 关键点：把工具描述传给模型
       tool_choice="auto"      # 让模型自己决定要不要用工具
@@ -191,7 +192,7 @@ def call_qwen(message, history):
     # 3. 判断模型是否需要调用工具
     if assistant_message.tool_calls:
       # 把模型的请求加入历史记录
-      message.append(assistant_message)
+      messages.append(assistant_message)
 
       for tool_call in assistant_message.tool_calls:
         function_name = tool_call.function.name
@@ -202,17 +203,26 @@ def call_qwen(message, history):
           result = get_weather(**function_args)
 
         # 5. 把执行结果包装成"tool"角色的消息，放回历史
-        message.append({
+        messages.append({
           "role": "tool",
           "tool_call_id": tool_call.id,
           "name": function_name,
           "content": str(result)
         })   
 
+      # 6. 第二次调用 LLM， 让他根据工具返回的结果生成最终的回复  
+      second_response = client.chat.completions.create(
+        model="qwen3.7-max-2026-05-20",       #指定使用的模型名称
+        messages=messages,      #传递完整的对话历史和当前消息
+      )
+      return second_response.choices[0].message.content
+
+    else:
+      # 如果模型没有调用工具，直接返回它的回复
+      return assistant_message.content
 
 
     # 提取并返回模型生成的回复内容
-    return response.choices[0].message.content
   
   except Exception as e:
     # 捕获并处理所有可能的异常，返回友好的错误信息
